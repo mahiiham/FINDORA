@@ -1,0 +1,6 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>Flagged reports</h1><p class="muted">Reports other users marked as suspicious.</p></div></div>
+<div class="stack">{% for f in flags %}<div class="card row spread"><div class="row-left">{{ m.photo(f.item,'rowthumb') }}<div><strong><a href="{{ url_for('admin.item_detail',item_id=f.item.id) }}">{{ f.item.title }}</a></strong><p>{{ f.reason }}</p><small>Reported by {{ f.reporter.name }} · {{ f.status }}</small></div></div>{% if f.status=='OPEN' %}<form method="post" action="{{ url_for('admin.resolve_flag',flag_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn primary">Resolve</button></form>{% endif %}</div>{% else %}<div class="empty">No flags.</div>{% endfor %}</div>
+{% endblock %}

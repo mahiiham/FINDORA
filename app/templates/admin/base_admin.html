@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Admin · {{ CAMPUS_NAME }}{% endblock %}</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/app.css') }}">
+{% block extra_head %}{% endblock %}
+<script>
+(function(){try{document.documentElement.setAttribute('data-theme',localStorage.getItem('findora-theme')||'dark');}catch(e){}})();
+</script>
+</head>
+<body class="admin-ui">
+<div class="bg-photo" aria-hidden="true"></div>
+<div class="bg-overlay" aria-hidden="true"></div>
+{% set ep = request.endpoint or '' %}
+<div class="admin-shell">
+  <aside class="sidebar">
+    <a class="side-brand" href="{{ url_for('admin.dashboard') }}">
+      <span class="brand-mark"><i class="bi bi-shield-check"></i></span>
+      <span class="brand-text">FINDORA<small>Admin Console</small></span>
+    </a>
+    <nav class="side-nav">
+      <p class="side-title">Overview</p>
+      <a class="{{ 'active' if ep=='admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <p class="side-title">Records</p>
+      <a class="{{ 'active' if ep in ['admin.items','admin.item_detail'] }}" href="{{ url_for('admin.items') }}"><i class="bi bi-box-seam"></i>All reports</a>
+      <a class="{{ 'active' if ep in ['admin.claims','admin.review_claim'] }}" href="{{ url_for('admin.claims') }}"><i class="bi bi-patch-check"></i>Claims</a>
+      <a class="{{ 'active' if ep=='admin.match_log' }}" href="{{ url_for('admin.match_log') }}"><i class="bi bi-cpu"></i>AI match log</a>
+      <p class="side-title">Communication</p>
+      <a class="{{ 'active' if ep in ['admin.tickets','admin.ticket','admin.contact_user'] }}" href="{{ url_for('admin.tickets') }}"><i class="bi bi-chat-dots"></i>User messages{% if open_tickets %}<span class="notif-badge">{{ open_tickets }}</span>{% endif %}</a>
+      <a class="{{ 'active' if ep=='admin.users' }}" href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i>Users</a>
+      <p class="side-title">Setup</p>
+      <a class="{{ 'active' if ep=='admin.categories' }}" href="{{ url_for('admin.categories') }}"><i class="bi bi-tags"></i>Categories</a>
+      <a class="{{ 'active' if ep=='admin.locations' }}" href="{{ url_for('admin.locations') }}"><i class="bi bi-geo-alt"></i>Locations</a>
+      <a class="{{ 'active' if ep=='admin.organizations' }}" href="{{ url_for('admin.organizations') }}"><i class="bi bi-building"></i>Organizations</a>
+      <p class="side-title">Safety</p>
+      <a class="{{ 'active' if ep=='admin.flags' }}" href="{{ url_for('admin.flags') }}"><i class="bi bi-flag"></i>Flags</a>
+      <a class="{{ 'active' if ep=='admin.audit_logs' }}" href="{{ url_for('admin.audit_logs') }}"><i class="bi bi-journal-text"></i>Audit log</a>
+    </nav>
+    <div class="side-foot"><a href="{{ url_for('main.index') }}"><i class="bi bi-box-arrow-up-right"></i>Open user site</a></div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-top">
+      <button type="button" class="hamburger" id="hamburger" aria-label="Menu"><i class="bi bi-list"></i></button>
+      <div class="campus-block"><span class="campus-title">{{ CAMPUS_NAME }}</span><span class="campus-sub">Meerut · Lost &amp; Found administration</span></div>
+      <div class="nav-actions">
+        <div class="theme-switch" id="theme-switch">
+          <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" aria-haspopup="true" aria-expanded="false" title="Appearance"><i class="bi bi-palette2"></i></button>
+          <div class="theme-menu" id="theme-menu" role="menu">
+            <p class="theme-menu-title">Appearance</p>
+            <div class="theme-swatches">
+              <button type="button" class="swatch dark" data-theme="dark" title="Dark"><i class="bi bi-check2"></i></button>
+              <button type="button" class="swatch light" data-theme="light" title="Light"><i class="bi bi-check2"></i></button>
+              <button type="button" class="swatch aurora" data-theme="aurora" title="Aurora"><i class="bi bi-check2"></i></button>
+              <button type="button" class="swatch sunset" data-theme="sunset" title="Sunset"><i class="bi bi-check2"></i></button>
+            </div>
+          </div>
+        </div>
+        <span class="user-chip"><span class="avatar">{{ current_user.name[:1]|upper }}</span></span>
+        <span class="who">{{ current_user.name }}</span>
+        <form class="inline" method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost small">Logout</button></form>
+      </div>
+    </header>
+    <main class="admin-content">
+      {% include '_flash.html' %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+<script src="{{ url_for('static',filename='js/app.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

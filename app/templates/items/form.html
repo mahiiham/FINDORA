@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+#smart-location-map{ height: 320px; border-radius: var(--radius-md); overflow:hidden; border:1px solid var(--surface-border); margin-bottom: 10px; }
+.loc-status{ display:flex; align-items:center; gap:8px; font-size:.85rem; color: var(--text-1); margin-bottom: 10px; }
+.loc-status .spinner{ width:14px; height:14px; border-radius:50%; border:2px solid var(--surface-border); border-top-color: var(--accent); animation: spin 0.8s linear infinite; }
+@keyframes spin{ to{ transform: rotate(360deg); } }
+.loc-legend{ display:flex; flex-wrap:wrap; gap: 14px; font-size:.78rem; color: var(--text-muted); margin: 8px 0 18px; }
+.loc-legend span{ display:inline-flex; align-items:center; gap:6px; }
+.loc-legend i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+.loc-legend .hi{ background:#ef4444; } .loc-legend .med{ background:#f59e0b; } .loc-legend .lo{ background:#22c55e; } .loc-legend .me{ background:#3b82f6; }
+</style>
+{% endblock %}
+{% block content %}<div class="pagehead"><div><h1>Report {{kind|title}} Item</h1><p>Photo is optional. Private details are encrypted and hidden from public pages. <a href="{{url_for('main.security')}}">See how we protect your data →</a></p></div></div>
+
+<div class="card" id="smart-location-card">
+  <h3><i class="bi bi-geo-alt"></i> Smart location assist</h3>
+  <p class="muted">Your device position is saved <strong>with this report</strong> (shown later under “My past locations”) and the nearest campus spot is pre-selected. The risk panel uses only anonymous, aggregated report counts.</p>
+  <div class="loc-status" id="loc-status"><span class="spinner"></span><span>Waiting for location permission…</span></div>
+  <p class="muted loc-saved" id="loc-saved"></p>
+  <div id="risk-box" class="risk-box" hidden></div>
+  <div id="smart-location-map"></div>
+  <div class="loc-legend">
+    <span><i class="hi"></i> High-risk spot</span><span><i class="med"></i> Medium risk</span><span><i class="lo"></i> Low risk</span><span><i class="me"></i> You</span>
+  </div>
+  <div class="trail-box">
+    <label class="check"><input type="checkbox" id="trail-opt"> Remember where I am for the next 6 hours <small class="muted">(only you can see it; deleted automatically)</small></label>
+    <div id="trail-list" class="trail-list"></div>
+    <button type="button" class="btn ghost small" id="trail-clear" hidden>Clear my trail</button>
+  </div>
+</div>
+
+{% if item is defined and item %}{% import '_macros.html' as m %}<div class="card row slim item-strip">{{ m.photo(item,'rowthumb big') }}<div><strong>Current picture</strong><p class="muted">{{ 'Uploaded photo — choose a new file below to replace it.' if item.image_path else 'No photo uploaded yet — the ' ~ item.category.name ~ ' sticker is shown. Upload one below.' }}</p></div></div>{% endif %}<form class="formgrid" method="post" enctype="multipart/form-data">{{form.hidden_tag()}}<input type="hidden" name="detected_lat" id="detected_lat"><input type="hidden" name="detected_lng" id="detected_lng">{% for f in [form.category_id,form.title,form.description,form.color,form.brand,form.model,form.location_id,form.date_event,form.time_event,form.image,form.distinguishing_features,form.value_level,form.private_details] %}<label class="{{'wide' if f.type in ['TextAreaField','FileField'] else ''}}">{{f.label}}{{f()}}{% for e in f.errors %}<small class="error">{{e}}</small>{% endfor %}</label>{% endfor %}{% if kind=='FOUND' %}<label>{{form.storage_location.label}}{{form.storage_location()}}</label>{% endif %}<div class="wide">{{form.submit(class='btn primary')}}</div></form>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static',filename='js/location-assist.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}{% block title %}How we protect your data · Findora{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>How we protect your data</h1>
+    <p class="muted">No jargon — just a plain explanation of what happens to your information when you use Findora.</p>
+  </div>
+</div>
+
+<div class="grid two">
+
+  <div class="card">
+    <h3><i class="bi bi-key"></i> Your password</h3>
+    <p>We never store your actual password — not even we can see it. When you sign up, your password is run through
+    a one-way scrambling process (called <em>hashing</em>). Think of it like a paper shredder: it turns
+    "MyPassword123" into a long string of random-looking characters, and that shredding can't be undone.
+    When you log in, we shred what you type and check if it matches the stored shreds — your real password never
+    touches our database.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-shield-lock"></i> Your "secret proof" details</h3>
+    <p>When you report a lost or found item, you can add a private detail only the real owner would know
+    (like "there's a coffee stain inside the front pocket"). This is <strong>encrypted</strong> before it's saved —
+    imagine locking it in a small safe. Only the app itself holds the key to that safe, and it's only opened for a
+    moment during admin review, never shown on any public page.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-chat-dots"></i> Chatting with another user</h3>
+    <p>When you message a claimant or a reporter, you never see their real name, email, or phone number —
+    only a label like "Claimant" or "Reporter". We also automatically scan outgoing messages and blank out
+    anything that looks like an email address, phone number, or social-media handle, so contact details can't
+    accidentally slip through before the platform's official return process is complete.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-geo-alt"></i> Your location</h3>
+    <p>Your device position is only read when you allow your browser to share it. It is saved with a report you file so you can see where you were, and the optional “remember my location for 6 hours” trail is visible <strong>only to you</strong> and deleted automatically after 6 hours (or when you press “Clear my trail”). Admins and other users never see it; the risk map shows only anonymous counts per campus place.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-eye-slash"></i> Who can see what</h3>
+    <p>Public search pages only ever show what's needed to recognize an item — a title, description, category,
+    location, and photo. Your private "secret proof" text, your exact contact details, and your account
+    information are never shown to other regular users. Only admins can review sensitive claim details, and only
+    while deciding a specific claim.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-clipboard-check"></i> We keep a paper trail (audit log)</h3>
+    <p>Every important action — a report created, a claim approved or rejected, an account role changed —
+    is logged with a timestamp and who did it. This isn't visible to regular users; it exists so admins (and you,
+    if something looks wrong) can always trace back what happened and when. It's like a security camera for
+    actions, not for people.</p>
+  </div>
+
+  <div class="card">
+    <h3><i class="bi bi-cpu"></i> How the "AI" parts work</h3>
+    <p>The matching engine and the visual-similarity check run entirely on our own server, comparing text and
+    photos you've already shared publicly (title, description, category, photo) — nothing is sent to an outside
+    company or a third-party AI service. The "confidence score" shown to admins is just simple, explainable math
+    (how similar two pieces of text are) — never a black box, and it never makes the final decision by itself.</p>
+  </div>
+
+</div>
+
+<div class="notice">
+  <strong>In one sentence:</strong> we store the minimum needed to reunite people with their things, we lock away
+  anything sensitive, we hide personal contact details during chat, and a human always makes the final call on
+  approving a claim.
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>Claims</h1><p class="muted">All claims with the item photo, parties, the AI score of the claimed report and its status.</p></div></div>
+<div class="tablewrap"><table>
+<tr><th></th><th>Claimed report</th><th>Claimant</th><th>Report owner</th><th>AI score / threshold</th><th>Status</th><th>Filed</th><th></th></tr>
+{% for c in claims %}{% set sc = best.get(c.item_id) %}
+<tr><td>{{ m.photo(c.item,'tablethumb') }}</td><td><strong>{{ c.item.title }}</strong><br><small>{{ m.sticker(c.item.category.name,'mini') }} {{ c.item.category.name }} · Claim #{{ c.id }}</small></td>
+<td>{{ c.claimant.name }}<br><small>{{ c.claimant.email }}</small></td><td>{{ c.item.user.name }}</td>
+<td>{{ m.score_pill(sc,threshold) }} <small class="muted">/ {{ (threshold*100)|round|int }}%</small></td>
+<td>{{ m.status_badge(c.status) }}</td><td>{{ c.created_at.strftime('%d %b %Y') }}</td>
+<td><a href="{{ url_for('admin.review_claim',claim_id=c.id) }}">Review</a> · <a href="{{ url_for('messaging.thread',claim_id=c.id) }}">Chat</a></td></tr>
+{% else %}<tr><td colspan="8"><div class="empty">No claims yet.</div></td></tr>{% endfor %}
+</table></div>
+{% endblock %}

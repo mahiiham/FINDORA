@@ -1,0 +1,9 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>User messages</h1><p class="muted">Direct reports and questions from users. Reply here — the user is notified.</p></div></div>
+<div class="tabs"><a class="{{ 'active' if not status }}" href="{{ url_for('admin.tickets') }}">All</a><a class="{{ 'active' if status=='OPEN' }}" href="{{ url_for('admin.tickets',status='OPEN') }}">Needs reply</a><a class="{{ 'active' if status=='ANSWERED' }}" href="{{ url_for('admin.tickets',status='ANSWERED') }}">Answered</a><a class="{{ 'active' if status=='CLOSED' }}" href="{{ url_for('admin.tickets',status='CLOSED') }}">Closed</a></div>
+<div class="tablewrap"><table><tr><th>#</th><th>User</th><th>Subject</th><th>Type</th><th>Related report</th><th>Status</th><th>Updated</th><th></th></tr>
+{% for t in tickets %}<tr><td>{{ t.id }}</td><td>{{ t.user.name }}<br><small>{{ t.user.email }}</small></td><td><strong>{{ t.subject }}</strong></td><td>{{ t.kind.replace('_',' ').title() }}</td><td>{% if t.item %}<div class="row-left">{{ m.photo(t.item,'tablethumb') }}<a href="{{ url_for('admin.item_detail',item_id=t.item.id) }}">{{ t.item.title }}</a></div>{% else %}—{% endif %}</td><td>{{ m.status_badge(t.status) }}</td><td>{{ t.updated_at.strftime('%d %b, %H:%M') }}</td><td><a href="{{ url_for('admin.ticket',ticket_id=t.id) }}">Open</a></td></tr>
+{% else %}<tr><td colspan="8"><div class="empty">No messages.</div></td></tr>{% endfor %}</table></div>
+{% endblock %}

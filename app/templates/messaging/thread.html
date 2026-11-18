@@ -1,0 +1,65 @@
+{% extends 'base.html' %}{% import '_macros.html' as mac %}{% block title %}Chat · Claim #{{claim.id}} · Findora{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Anonymized chat — Claim #{{claim.id}}</h1>
+    <p class="muted">{{claim.item.title}} · You appear only as your role. No names, emails or phone numbers are shared.</p>
+  </div>
+  <div class="actions"><a class="btn ghost" href="{{ url_for('claims.detail', claim_id=claim.id) }}">Back to claim</a></div>
+</div>
+
+<div class="card row slim item-strip">{{ mac.photo(claim.item,'rowthumb') }}<div><span class="badge {{ claim.item.item_type|lower }}">{{ claim.item.item_type }}</span> <strong>{{ claim.item.title }}</strong><p class="muted">{{ claim.item.category.name }} · {{ claim.item.location.name }}</p></div></div>
+<div class="privacy-banner">
+  <i class="shield-dot"></i>
+  <span>Findora relays this conversation. Contact details are automatically hidden — coordinate the handover through the platform's verified return flow.</span>
+</div>
+
+<div class="chat-shell card">
+  <div id="chat-log" class="chat-log" data-claim="{{claim.id}}" data-last="{{ messages[-1].id if messages else 0 }}">
+    {% for m in messages %}
+      <div class="bubble {{ 'mine' if m.sender_id==current_user.id else 'theirs' }}">
+        <span class="bubble-alias">{{ alias(m.sender_id) }}</span>
+        <p>{{ m.body }}</p>
+        <time>{{ m.created_at.strftime('%H:%M') }}</time>
+      </div>
+    {% else %}
+      <p class="empty">No messages yet — say hello without sharing any contact info.</p>
+    {% endfor %}
+  </div>
+  <form method="post" class="chat-form" id="chat-form">
+    {{ form.hidden_tag() }}
+    {{ form.body(rows=2, placeholder="Type a message… phone numbers and emails are auto-hidden") }}
+    <button class="btn primary" type="submit">Send</button>
+  </form>
+</div>
+
+<script>
+(function(){
+  const log = document.getElementById('chat-log');
+  const claimId = log.dataset.claim;
+  let lastId = parseInt(log.dataset.last || '0', 10);
+  log.scrollTop = log.scrollHeight;
+  async function poll(){
+    try{
+      const res = await fetch(`/messages/claim/${claimId}/poll?after=${lastId}`);
+      if(!res.ok) return;
+      const rows = await res.json();
+      if(rows.length){
+        const wasEmpty = log.querySelector('.empty');
+        if(wasEmpty) wasEmpty.remove();
+        rows.forEach(m => {
+          lastId = Math.max(lastId, m.id);
+          const div = document.createElement('div');
+          div.className = 'bubble ' + (m.mine ? 'mine' : 'theirs');
+          div.innerHTML = `<span class="bubble-alias">${m.alias}</span><p></p><time>${m.created_at}</time>`;
+          div.querySelector('p').textContent = m.body;
+          log.appendChild(div);
+        });
+        log.scrollTop = log.scrollHeight;
+      }
+    }catch(e){ /* silent — chat keeps working via normal page reload */ }
+  }
+  setInterval(poll, 4000);
+})();
+</script>
+{% endblock %}

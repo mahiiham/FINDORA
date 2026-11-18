@@ -1,0 +1,3 @@
+# OPTIONAL: install only if you want scikit-learn to do the TF-IDF maths (results are identical to the built-in engine).
+# It has no pre-built wheels for very new Python versions - use Python 3.11-3.13 for this one.
+scikit-learn>=1.4

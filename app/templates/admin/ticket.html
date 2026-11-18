@@ -1,0 +1,20 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>{{ ticket.subject }}</h1><p class="muted">{{ ticket.kind.replace('_',' ').title() }} · {{ ticket.user.name }} ({{ ticket.user.email }}){% if ticket.item %} · about <a href="{{ url_for('admin.item_detail',item_id=ticket.item.id) }}">{{ ticket.item.title }}</a>{% endif %}</p></div>
+  <div class="actions">{{ m.status_badge(ticket.status) }}<a class="btn ghost" href="{{ url_for('admin.tickets') }}">All messages</a>{% if ticket.status!='CLOSED' %}<form class="inline" method="post" action="{{ url_for('admin.ticket_close',ticket_id=ticket.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">Close ticket</button></form>{% endif %}</div></div>
+{% if ticket.item %}<div class="card row slim item-strip">{{ m.photo(ticket.item,'rowthumb') }}<div><span class="badge {{ ticket.item.item_type|lower }}">{{ ticket.item.item_type }}</span> <strong>{{ ticket.item.title }}</strong><p class="muted">{{ ticket.item.category.name }} · {{ ticket.item.location.name }}</p></div></div>{% endif %}
+<div class="grid two-wide">
+  <div class="chat-shell card"><div class="chat-log">
+    {% for msg in ticket.messages %}<div class="bubble {{ 'mine' if msg.from_admin else 'theirs' }}"><span class="bubble-alias">{{ 'Admin' if msg.from_admin else ticket.user.name }}</span><p>{{ msg.body }}</p><time>{{ msg.created_at.strftime('%d %b, %H:%M') }}</time></div>{% endfor %}
+  </div>
+  {% if ticket.status!='CLOSED' %}<form method="post" class="chat-form">{{ form.hidden_tag() }}{{ form.body(rows=2, placeholder='Reply to the user…') }}<button class="btn primary" type="submit">Reply</button></form>{% else %}<div class="chat-form"><span class="muted">Ticket closed.</span></div>{% endif %}</div>
+  <aside class="card">
+    <h3>AI evidence for this report</h3><p class="muted">Threshold {{ (threshold*100)|round|int }}%. Use these numbers to explain the outcome to the user.</p>
+    {% if ticket.item %}
+      {% for r in logs %}{% set other = r.found_item if ticket.item_id==r.lost_item_id else r.lost_item %}<div class="row spread slim-row"><span>{{ other.title }}</span>{{ m.score_pill(r.score,r.threshold) }}</div>
+      {% else %}<div class="empty">No pairs were scored for this report.</div>{% endfor %}
+    {% else %}<div class="empty">No report linked to this conversation.</div>{% endif %}
+  </aside>
+</div>
+{% endblock %}

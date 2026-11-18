@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block title %}{{ ticket.subject }} · Findora{% endblock %}
+{% block content %}
+<div class="pagehead"><div><h1>{{ ticket.subject }}</h1><p class="muted">{{ ticket.kind.replace('_',' ').title() }} · started {{ ticket.created_at.strftime('%d %b %Y') }}{% if ticket.item %} · about <a href="{{ url_for('items.detail',item_id=ticket.item.id) }}">{{ ticket.item.title }}</a>{% endif %}</p></div>
+  <div class="actions">{{ m.status_badge(ticket.status) }}<a class="btn ghost" href="{{ url_for('support.index') }}">All conversations</a>
+  {% if ticket.status!='CLOSED' %}<form class="inline" method="post" action="{{ url_for('support.close',ticket_id=ticket.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">Mark resolved</button></form>{% endif %}</div></div>
+{% if ticket.item %}<div class="card row slim item-strip">{{ m.photo(ticket.item,'rowthumb') }}<div><span class="badge {{ ticket.item.item_type|lower }}">{{ ticket.item.item_type }}</span> <strong>{{ ticket.item.title }}</strong><p class="muted">{{ ticket.item.category.name }} · {{ ticket.item.location.name }}</p></div></div>{% endif %}
+<div class="chat-shell card">
+  <div class="chat-log">
+  {% for msg in ticket.messages %}
+    <div class="bubble {{ 'theirs' if msg.from_admin else 'mine' }}"><span class="bubble-alias">{{ 'MIET Admin' if msg.from_admin else 'You' }}</span><p>{{ msg.body }}</p><time>{{ msg.created_at.strftime('%d %b, %H:%M') }}</time></div>
+  {% endfor %}
+  </div>
+  {% if ticket.status!='CLOSED' %}
+  <form method="post" class="chat-form">{{ form.hidden_tag() }}{{ form.body(rows=2, placeholder='Write a reply…') }}<button class="btn primary" type="submit">Send</button></form>
+  {% else %}<div class="chat-form"><span class="muted">This conversation is closed.</span></div>{% endif %}
+</div>
+{% endblock %}

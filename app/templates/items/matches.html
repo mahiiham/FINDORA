@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>AI matches for {{ item.title }}</h1><p class="muted">Each score blends text, category, location, date, attributes and photo similarity. Matches need at least {{ (threshold*100)|round|int }}%.</p></div><a class="btn ghost" href="{{ url_for('support.index') }}"><i class="bi bi-headset"></i> Ask the admin about a result</a></div>
+{% for mt in matches %}{% set other = mt.found_item if item.id==mt.lost_item_id else mt.lost_item %}
+<div class="card">
+  <div class="card match">
+    <div class="row-left">{{ m.photo(other,'rowthumb big') }}<div><h3><a href="{{ url_for('items.detail',item_id=other.id) }}">{{ other.title }}</a></h3><p>{{ other.description }}</p><p>{% for r in mt.reasons_json %}<span class="chip">✓ {{ r }}</span>{% endfor %}</p></div></div>
+    <div class="score">{{ (mt.score*100)|round|int }}%<small>AI match</small><a class="btn primary small" href="{{ url_for('messaging.match_thread',match_id=mt.id) }}"><i class="bi bi-chat-dots"></i> Message anonymously</a></div>
+  </div>
+  <div class="match-breakdown">
+    {% for label,val in [('Description',mt.description_score),('Category',mt.category_score),('Location',mt.location_score),('Date',mt.date_score),('Attributes',mt.attribute_score),('Photo',mt.image_score)] %}
+    <div class="mb-row"><span>{{ label }}</span><div class="mb-bar"><i style="width:{{ ((val or 0)*100)|round|int }}%"></i></div><span class="mb-pct">{{ ((val or 0)*100)|round|int }}%</span></div>
+    {% endfor %}
+  </div>
+</div>
+{% else %}<div class="empty">No strong AI matches yet. If you think something should have matched, use <a href="{{ url_for('support.index') }}">Contact admin</a> — the admin can see the exact score and threshold.</div>{% endfor %}
+{% endblock %}

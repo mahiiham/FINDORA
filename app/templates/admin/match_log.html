@@ -1,0 +1,20 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>AI match log</h1><p class="muted">Every lost/found pair the AI engine scored. Use it to justify why a user's report matched — or did not — if they contact you.</p></div></div>
+<div class="notice"><i class="bi bi-sliders"></i> Matching engine: <strong>TF-IDF + cosine similarity ({{ engine }})</strong> for text, <strong>dHash (Pillow)</strong> for photos, plus category, location, date and colour/brand/model. A pair is a match when its blended score is at least <strong>{{ (threshold*100)|round|int }}%</strong>.</div>
+<div class="tabs"><a class="{{ 'active' if view=='all' }}" href="{{ url_for('admin.match_log') }}">All ({{ counts.all }})</a><a class="{{ 'active' if view=='matched' }}" href="{{ url_for('admin.match_log',view='matched') }}">Matched ({{ counts.matched }})</a><a class="{{ 'active' if view=='rejected' }}" href="{{ url_for('admin.match_log',view='rejected') }}">Rejected by threshold ({{ counts.rejected }})</a></div>
+<div class="tablewrap"><table>
+<tr><th>Lost report</th><th>Found report</th><th>AI score</th><th>Threshold</th><th>Gap</th><th>Result</th><th>Score breakdown</th></tr>
+{% for r in rows %}
+<tr>
+<td><div class="row-left">{{ m.photo(r.lost_item,'tablethumb') }}<div><a href="{{ url_for('admin.item_detail',item_id=r.lost_item_id) }}"><strong>{{ r.lost_item.title }}</strong></a><br><small>{{ r.lost_item.user.name }}</small></div></div></td>
+<td><div class="row-left">{{ m.photo(r.found_item,'tablethumb') }}<div><a href="{{ url_for('admin.item_detail',item_id=r.found_item_id) }}"><strong>{{ r.found_item.title }}</strong></a><br><small>{{ r.found_item.user.name }}</small></div></div></td>
+<td>{{ m.score_pill(r.score,r.threshold) }}</td><td>{{ (r.threshold*100)|round|int }}%</td>
+<td class="{{ 'ok' if r.passed else 'bad' }}">{{ ((r.score-r.threshold)*100)|round|int }} pts</td>
+<td>{% if r.passed %}<span class="pill pass">Matched</span>{% else %}<span class="pill fail">Rejected</span>{% endif %}</td>
+<td><small>Text {{ ((r.description_score or 0)*100)|round|int }}% · Category {{ ((r.category_score or 0)*100)|round|int }}% · Location {{ ((r.location_score or 0)*100)|round|int }}% · Date {{ ((r.date_score or 0)*100)|round|int }}% · Attributes {{ ((r.attribute_score or 0)*100)|round|int }}% · Photo {{ ((r.image_score or 0)*100)|round|int }}%</small>{% if r.reasons_json %}<br>{% for x in r.reasons_json %}<span class="chip">✓ {{ x }}</span>{% endfor %}{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="7"><div class="empty">Nothing scored yet.</div></td></tr>{% endfor %}
+</table></div>
+{% endblock %}

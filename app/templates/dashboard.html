@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block title %}My dashboard · Findora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><span class="eyebrow">{{ CAMPUS_NAME }}</span><h1>Welcome, {{ current_user.name }}</h1><p class="muted">Your reports, claims, AI matches and past locations in one place.</p></div>
+  <div class="actions">
+    <a class="btn primary" href="{{ url_for('items.create',kind='lost') }}"><i class="bi bi-exclamation-circle"></i> Report lost</a>
+    <a class="btn" href="{{ url_for('items.create',kind='found') }}"><i class="bi bi-check-circle"></i> Report found</a>
+    <a class="btn ghost" href="{{ url_for('support.index') }}"><i class="bi bi-headset"></i> Contact admin</a>
+  </div>
+</div>
+
+<div class="grid five">
+  <div class="stat"><strong>{{ stats.lost }}</strong><span>Lost reports</span></div>
+  <div class="stat"><strong>{{ stats.found }}</strong><span>Found reports</span></div>
+  <div class="stat"><strong>{{ stats.matches }}</strong><span>AI matches</span></div>
+  <div class="stat"><strong>{{ stats.claims }}</strong><span>My claims</span></div>
+  <div class="stat"><strong>{{ stats.returned }}</strong><span>Returned</span></div>
+</div>
+
+<h2 id="reports">My report dashboard</h2>
+<h3 class="section-sub"><i class="bi bi-exclamation-circle"></i> Lost by me</h3>
+<div class="grid three">{% for item in my_items if item.item_type=='LOST' %}{% include 'items/_card.html' %}{% else %}<div class="empty">You have not reported anything lost.</div>{% endfor %}</div>
+<h3 class="section-sub"><i class="bi bi-check-circle"></i> Found by me</h3>
+<div class="grid three">{% for item in my_items if item.item_type=='FOUND' %}{% include 'items/_card.html' %}{% else %}<div class="empty">You have not reported anything found.</div>{% endfor %}</div>
+
+<h2 id="matches">AI matches for my reports</h2>
+<div class="stack">
+{% for mt in matches %}
+  {% set mine = mt.lost_item if mt.lost_item.user_id==current_user.id else mt.found_item %}
+  {% set other = mt.found_item if mine.id==mt.lost_item_id else mt.lost_item %}
+  <div class="card row spread">
+    <div class="row-left">{{ m.photo(other,'rowthumb') }}<div><strong><a href="{{ url_for('items.detail',item_id=other.id) }}">{{ other.title }}</a></strong>
+      <p class="muted">Matches your <em>{{ mine.title }}</em> · {{ other.location.name }}</p>
+      <p>{% for r in mt.reasons_json %}<span class="chip">✓ {{ r }}</span>{% endfor %}</p></div></div>
+    <div class="actions"><span class="pill pass big">{{ (mt.score*100)|round|int }}%</span><a class="btn ghost small" href="{{ url_for('matching.item_matches',item_id=mine.id) }}">Why?</a><a class="btn ghost small" href="{{ url_for('messaging.match_thread',match_id=mt.id) }}" title="Message anonymously"><i class="bi bi-chat-dots"></i></a></div>
+  </div>
+{% else %}<div class="empty">No AI matches yet. New matches appear here and in your alerts.</div>{% endfor %}
+</div>
+
+<div class="grid two">
+  <section id="claims">
+    <h2>My claims</h2>
+    <div class="stack">
+    {% for c in my_claims %}
+      <div class="card row spread"><div class="row-left">{{ m.photo(c.item,'rowthumb') }}<div><a href="{{ url_for('claims.detail',claim_id=c.id) }}"><strong>{{ c.item.title }}</strong></a><p class="muted">Claim #{{ c.id }} · {{ c.created_at.strftime('%d %b %Y') }}</p></div></div>
+        <div class="actions">{{ m.status_badge(c.status) }}{% if c.status in ['PENDING','APPROVED'] %}<a class="btn ghost small" href="{{ url_for('messaging.thread',claim_id=c.id) }}"><i class="bi bi-chat-dots"></i></a>{% endif %}</div></div>
+    {% else %}<div class="empty">You have not claimed any item.</div>{% endfor %}
+    </div>
+  </section>
+  <section>
+    <h2>Claims on my reports</h2>
+    <div class="stack">
+    {% for c in received %}
+      <div class="card row spread"><div class="row-left">{{ m.photo(c.item,'rowthumb') }}<div><a href="{{ url_for('claims.detail',claim_id=c.id) }}"><strong>{{ c.item.title }}</strong></a><p class="muted">Anonymous claimant · {{ c.created_at.strftime('%d %b %Y') }}</p></div></div>
+        <div class="actions">{{ m.status_badge(c.status) }}{% if c.status in ['PENDING','APPROVED'] %}<a class="btn ghost small" href="{{ url_for('messaging.thread',claim_id=c.id) }}"><i class="bi bi-chat-dots"></i></a>{% endif %}</div></div>
+    {% else %}<div class="empty">Nobody has claimed your reports yet.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+
+<h2 id="locations">My past locations</h2>
+<p class="muted">Where each of your reports was filed. <span class="legend-dot exact"></span> exact device position, <span class="legend-dot approx"></span> campus location only.</p>
+<div class="grid two loc-history">
+  <div id="history-map" class="history-map"></div>
+  <div class="stack scroll">
+  {% for h in history %}
+    <div class="card row spread slim"><div><strong>{{ h.place }}</strong><p class="muted">{{ h.type|title }} · <a href="{{ url_for('items.detail',item_id=h.id) }}">{{ h.title }}</a></p><small>{{ h.when }}</small></div>
+      {% if h.exact %}<span class="pill pass"><i class="bi bi-crosshair"></i> GPS</span>{% else %}<span class="pill muted">campus</span>{% endif %}</div>
+  {% else %}<div class="empty">Your locations appear here after you file a report.</div>{% endfor %}
+  </div>
+</div>
+
+<h2 id="risk">Campus risk suggestions</h2>
+<div class="grid two">
+  <div class="stack">
+  {% for r in risk %}
+    <div class="card slim risk-card {{ r.risk }}"><strong><i class="bi bi-exclamation-triangle"></i> {{ r.name }}</strong><p class="muted">{{ r.tip }}</p>{% if r.recent_count %}<small><em>{{ r.recent_count }} report(s) in the last 6 hours</em></small>{% endif %}</div>
+  {% else %}<div class="empty">No high-risk spots yet — not enough reports.</div>{% endfor %}
+  </div>
+  <div class="card slim"><strong><i class="bi bi-clock-history"></i> Where I was in the last 6 hours</strong>
+    <label class="check" style="margin-top:8px"><input type="checkbox" id="trail-opt"> Remember my location for 6 hours <small class="muted">(only I can see it)</small></label>
+    <div id="trail-list" class="trail-list"><p class="muted">Loading…</p></div><button type="button" class="btn ghost small" id="trail-clear" hidden>Clear my trail</button></div>
+</div>
+
+<div class="grid two">
+  <section><h2>Alerts</h2>{% for n in notifications %}<div class="card slim"><strong>{{ n.title }}</strong><p>{{ n.message }}</p></div>{% else %}<p class="muted">You're all caught up.</p>{% endfor %}<a class="btn ghost small" href="{{ url_for('notifications.list_notifications') }}">All alerts</a></section>
+  <section><h2>Messages with the admin</h2>{% for t in tickets %}<div class="card row spread slim"><a href="{{ url_for('support.thread',ticket_id=t.id) }}"><strong>{{ t.subject }}</strong></a>{{ m.status_badge(t.status) }}</div>{% else %}<p class="muted">No conversations yet.</p>{% endfor %}<a class="btn ghost small" href="{{ url_for('support.index') }}">Contact admin</a></section>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static',filename='js/trail-panel.js') }}"></script>
+<script>
+(function () {
+  var el = document.getElementById('history-map'); if (!el || typeof L === 'undefined') return;
+  var pts = {{ history|tojson }};
+  var map = L.map(el).setView([29.016, 77.674], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+  var b = [];
+  pts.forEach(function (p) {
+    if (p.lat == null || p.lng == null) return;
+    var c = p.type === 'LOST' ? '#ef4444' : '#22c55e';
+    L.circleMarker([p.lat, p.lng], { radius: 9, color: '#fff', weight: p.exact ? 3 : 1, fillColor: c, fillOpacity: p.exact ? 0.95 : 0.5 })
+      .addTo(map).bindPopup('<strong>' + p.place + '</strong><br>' + p.type + ': ' + p.title + '<br>' + p.when);
+    b.push([p.lat, p.lng]);
+  });
+  if (b.length) map.fitBounds(b, { padding: [30, 30], maxZoom: 17 });
+})();
+</script>
+{% endblock %}

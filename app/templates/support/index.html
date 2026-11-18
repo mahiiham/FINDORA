@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block title %}Contact admin · Findora{% endblock %}
+{% block content %}
+<div class="pagehead"><div><h1>Contact the admin</h1><p class="muted">A direct, private line to the {{ CAMPUS_NAME }} lost &amp; found desk. Use it to report something directly, ask a question, or ask why a report was not matched.</p></div></div>
+<div class="grid two">
+  <form class="card" method="post">
+    {{ form.hidden_tag() }}
+    <h3>New message</h3>
+    <label>{{ form.kind.label }}{{ form.kind() }}</label>
+    <label>{{ form.item_id.label }}{{ form.item_id() }}</label>
+    <label>{{ form.subject.label }}{{ form.subject(placeholder='e.g. Why was my wallet not matched?') }}{% for e in form.subject.errors %}<small class="error">{{ e }}</small>{% endfor %}</label>
+    <label>{{ form.body.label }}{{ form.body(rows=5) }}{% for e in form.body.errors %}<small class="error">{{ e }}</small>{% endfor %}</label>
+    {{ form.submit(class='btn primary') }}
+  </form>
+  <section>
+    <h3>My conversations</h3>
+    <div class="stack">
+    {% for t in tickets %}
+      <a class="card row spread slim linkcard" href="{{ url_for('support.thread',ticket_id=t.id) }}"><div class="row-left">{% if t.item %}{{ m.photo(t.item,'rowthumb') }}{% endif %}<div><strong>{{ t.subject }}</strong><p class="muted">{{ t.kind.replace('_',' ').title() }} · {{ t.updated_at.strftime('%d %b %Y, %H:%M') }}</p></div></div>{{ m.status_badge(t.status) }}</a>
+    {% else %}<div class="empty">No conversations yet.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

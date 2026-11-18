@@ -1,0 +1,6 @@
+{% extends 'admin/base_admin.html' %}
+{% block content %}
+<div class="pagehead"><div><h1>Users</h1><p class="muted">Registered students and staff. Contact a user directly through the platform.</p></div></div>
+<div class="tablewrap"><table><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Reports</th><th>Active</th><th>Joined</th><th></th></tr>
+{% for u in users %}<tr><td><strong>{{ u.name }}</strong></td><td>{{ u.email }}</td><td>{{ u.phone or '—' }}</td><td>{{ u.role }}</td><td>{{ u.items|length }}</td><td>{{ 'Yes' if u.is_active else 'No' }}</td><td>{{ u.created_at.strftime('%d %b %Y') }}</td><td>{% if u.role!='ADMIN' %}<a href="{{ url_for('admin.contact_user',user_id=u.id) }}">Contact</a>{% endif %}</td></tr>{% endfor %}</table></div>
+{% endblock %}

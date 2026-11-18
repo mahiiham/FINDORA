@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>Claim #{{ claim.id }}</h1><p class="muted">{{ claim.item.title }} · {{ claim.item.location.name }}</p></div>{{ m.status_badge(claim.status) }}</div>
+<div class="detail">
+  <section><img class="detailimg {{ '' if claim.item.image_path else 'is-sticker' }}" src="{{ item_photo(claim.item) }}" alt="{{ claim.item.title }}"></section>
+  <section class="card">
+    <h2 style="margin-top:0">Progress</h2>
+    <ol class="steps">
+      <li class="done">Claim submitted · {{ claim.created_at.strftime('%d %b %Y') }}</li>
+      <li class="{{ 'done' if claim.status in ['APPROVED','REJECTED'] }}">Admin review{% if claim.reviewed_at %} · {{ claim.reviewed_at.strftime('%d %b %Y') }}{% endif %}</li>
+      <li class="{{ 'done' if claim.item.status=='RETURNED' }}">Item returned</li>
+    </ol>
+    {% if claim.review_reason %}<p><strong>Admin note:</strong> {{ claim.review_reason }}</p>{% endif %}
+    <div class="actions">
+      {% if claim.status in ['PENDING','APPROVED'] %}<a class="btn" href="{{ url_for('messaging.thread',claim_id=claim.id) }}"><i class="bi bi-chat-dots"></i> Anonymized chat</a>{% endif %}
+      {% if claim.status=='APPROVED' and claim.item.status!='RETURNED' %}<form class="inline" method="post" action="{{ url_for('claims.returned',claim_id=claim.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn primary">Mark item as returned</button></form>{% endif %}
+      <a class="btn ghost" href="{{ url_for('support.index') }}"><i class="bi bi-headset"></i> Contact admin</a>
+    </div>
+    <p class="notice">In the chat you appear only as a role label. Phone numbers, e-mail addresses and social handles are hidden automatically.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><span class="badge {{ item.item_type|lower }}">{{ item.item_type }}</span> {{ m.status_badge(item.status) }}<h1>{{ item.title }}</h1><p class="muted">Report #{{ item.id }} · filed {{ item.created_at.strftime('%d %b %Y, %H:%M') }}</p></div>
+  <div class="actions"><a class="btn primary" href="{{ url_for('admin.contact_user',user_id=item.user_id,item=item.id) }}"><i class="bi bi-chat-dots"></i> Contact reporter</a><a class="btn ghost" href="{{ url_for('items.detail',item_id=item.id) }}">User view</a></div></div>
+<div class="detail">
+  <section><img class="detailimg {{ '' if item.image_path else 'is-sticker' }}" src="{{ item_photo(item) }}" alt="{{ item.title }}">{% if not item.image_path %}<p class="muted center">No photo uploaded — category sticker shown.</p>{% endif %}</section>
+  <section class="card">
+    <dl>
+      <dt>Category</dt><dd>{{ m.sticker(item.category.name,'mini') }} {{ item.category.name }}</dd>
+      <dt>Reporter</dt><dd>{{ item.user.name }} · {{ item.user.email }}{% if item.user.phone %} · {{ item.user.phone }}{% endif %}</dd>
+      <dt>Location</dt><dd>{{ item.location.name }}</dd>
+      <dt>GPS stored</dt><dd>{% if item.reported_lat is not none %}{{ '%.5f'|format(item.reported_lat) }}, {{ '%.5f'|format(item.reported_lng) }}{% else %}No device position was shared{% endif %}</dd>
+      <dt>Event date</dt><dd>{{ item.date_event.strftime('%d %b %Y') }}</dd>
+      <dt>Colour / brand</dt><dd>{{ item.color or '-' }} · {{ item.brand or '-' }}</dd>
+      <dt>Description</dt><dd>{{ item.description }}</dd>
+      <dt>Private proof</dt><dd class="sensitive-text">{{ private or '—' }}</dd>
+    </dl>
+  </section>
+</div>
+<h2>AI scoring for this report <small class="muted">(threshold {{ (threshold*100)|round|int }}%)</small></h2>
+<div class="tablewrap"><table>
+<tr><th></th><th>Compared with</th><th>Owner</th><th>AI score</th><th>Threshold</th><th>Gap</th><th>Result</th><th>Why</th></tr>
+{% for r in logs %}{% set other = r.found_item if item.id==r.lost_item_id else r.lost_item %}
+<tr><td>{{ m.photo(other,'tablethumb') }}</td><td><a href="{{ url_for('admin.item_detail',item_id=other.id) }}"><strong>{{ other.title }}</strong></a><br><small>{{ other.item_type|title }} · {{ other.location.name }}</small></td><td>{{ other.user.name }}</td>
+<td>{{ m.score_pill(r.score,r.threshold) }}</td><td>{{ (r.threshold*100)|round|int }}%</td><td>{{ ((r.score-r.threshold)*100)|round|int }} pts</td>
+<td>{% if r.passed %}<span class="pill pass">Matched</span>{% else %}<span class="pill fail">Rejected</span>{% endif %}</td>
+<td><details><summary>Breakdown</summary><small>Description {{ ((r.description_score or 0)*100)|round|int }}% · Category {{ ((r.category_score or 0)*100)|round|int }}% · Location {{ ((r.location_score or 0)*100)|round|int }}% · Date {{ ((r.date_score or 0)*100)|round|int }}% · Attributes {{ ((r.attribute_score or 0)*100)|round|int }}% · Photo {{ ((r.image_score or 0)*100)|round|int }}%</small></details></td></tr>
+{% else %}<tr><td colspan="8"><div class="empty">No opposite-type reports were available to compare with.</div></td></tr>{% endfor %}
+</table></div>
+<div class="grid two">
+  <section><h2>Claims on this report</h2><div class="stack">{% for c in claims %}<div class="card row spread slim"><div>Claim #{{ c.id }} · {{ c.claimant.name }}<p class="muted">{{ c.created_at.strftime('%d %b %Y') }}</p></div><div class="actions">{{ m.status_badge(c.status) }}<a class="btn ghost small" href="{{ url_for('admin.review_claim',claim_id=c.id) }}">Open</a></div></div>{% else %}<div class="empty">No claims.</div>{% endfor %}</div></section>
+  <section><h2>Messages about this report</h2><div class="stack">{% for t in tickets %}<a class="card row spread slim linkcard" href="{{ url_for('admin.ticket',ticket_id=t.id) }}"><strong>{{ t.subject }}</strong>{{ m.status_badge(t.status) }}</a>{% else %}<div class="empty">No messages.</div>{% endfor %}</div></section>
+</div>
+{% endblock %}

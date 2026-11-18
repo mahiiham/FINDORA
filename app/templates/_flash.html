@@ -1,0 +1,9 @@
+{% with messages=get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="toast-stack" id="toast-stack">
+    {% for cat,msg in messages %}
+    <div class="alert {{cat}}"><i class="bi {{ {'success':'bi-check-circle','danger':'bi-exclamation-octagon','warning':'bi-exclamation-triangle','info':'bi-info-circle'}.get(cat,'bi-info-circle') }}"></i><span>{{ msg }}</span><button class="alert-close" aria-label="Dismiss">&times;</button></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}

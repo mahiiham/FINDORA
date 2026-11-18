@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>My claims</h1><p class="muted">Claims you submitted for items other people reported. Every claim is reviewed by the admin.</p></div><a class="btn ghost" href="{{ url_for('items.list_items') }}">Find an item to claim</a></div>
+<div class="stack">
+{% for c in claims %}
+  <div class="card row spread">
+    <div class="row-left">{{ m.photo(c.item,'rowthumb big') }}<div><strong><a href="{{ url_for('claims.detail',claim_id=c.id) }}">{{ c.item.title }}</a></strong><p class="muted">Claim #{{ c.id }} · {{ c.created_at.strftime('%d %b %Y') }} · {{ c.item.location.name }}</p>{% if c.review_reason %}<p><strong>Admin note:</strong> {{ c.review_reason }}</p>{% endif %}</div></div>
+    <div class="actions">{{ m.status_badge(c.status) }}{% if c.status in ['PENDING','APPROVED'] %}<a class="btn ghost small" href="{{ url_for('messaging.thread',claim_id=c.id) }}"><i class="bi bi-chat-dots"></i> Chat</a>{% endif %}</div>
+  </div>
+{% else %}<div class="empty">You have not submitted any claims.</div>{% endfor %}
+</div>
+{% endblock %}

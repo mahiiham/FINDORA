@@ -1,0 +1,5 @@
+{% extends 'admin/base_admin.html' %}
+{% block content %}
+<div class="pagehead"><div><h1>Contact {{ user.name }}</h1><p class="muted">{{ user.email }}{% if user.phone %} · {{ user.phone }}{% endif %} — the message appears in the user's “Contact admin” area and as an alert.</p></div></div>
+<form class="authbox widebox" method="post">{{ form.hidden_tag() }}<label>{{ form.subject.label }}{{ form.subject() }}{% for e in form.subject.errors %}<small class="error">{{ e }}</small>{% endfor %}</label><label>{{ form.body.label }}{{ form.body(rows=6) }}{% for e in form.body.errors %}<small class="error">{{ e }}</small>{% endfor %}</label><div class="actions">{{ form.submit(class='btn primary') }}<a class="btn ghost" href="{{ url_for('admin.users') }}">Cancel</a></div></form>
+{% endblock %}

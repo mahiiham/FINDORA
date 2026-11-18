@@ -1,0 +1,19 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>All reports</h1><p class="muted">Every lost and found report with photo, reporter, stored location and the best AI score against the {{ (threshold*100)|round|int }}% threshold.</p></div></div>
+<form class="filters" method="get"><input name="q" placeholder="Search title or description" value="{{ f_q }}"><select name="type"><option value="">Lost or found</option><option value="LOST" {{ 'selected' if f_type=='LOST' }}>Lost</option><option value="FOUND" {{ 'selected' if f_type=='FOUND' }}>Found</option></select><select name="status"><option value="">Any status</option>{% for s in ['ACTIVE','MATCHED','CLAIM_PENDING','CLAIM_APPROVED','RETURNED','FLAGGED'] %}<option value="{{ s }}" {{ 'selected' if f_status==s }}>{{ s.replace('_',' ') }}</option>{% endfor %}</select><button class="btn primary">Filter</button><a class="btn ghost" href="{{ url_for('admin.items') }}">Clear</a></form>
+<div class="tablewrap"><table>
+<tr><th></th><th>Report</th><th>Type</th><th>Reporter</th><th>Location stored</th><th>Best AI score</th><th>AI outcome</th><th>Status</th><th></th></tr>
+{% for i in items %}{% set sc = best.get(i.id) %}
+<tr><td>{{ m.photo(i,'tablethumb') }}</td>
+<td><strong>{{ i.title }}</strong><br><small>{{ m.sticker(i.category.name,'mini') }} {{ i.category.name }} · {{ i.created_at.strftime('%d %b %Y') }}</small></td>
+<td><span class="badge {{ i.item_type|lower }}">{{ i.item_type }}</span></td>
+<td>{{ i.user.name }}<br><small>{{ i.user.email }}</small></td>
+<td>{{ i.location.name }}<br><small>{% if i.reported_lat is not none %}GPS {{ '%.4f'|format(i.reported_lat) }}, {{ '%.4f'|format(i.reported_lng) }}{% else %}campus only{% endif %}</small></td>
+<td>{{ m.score_pill(sc,threshold) }}</td>
+<td>{% if sc is none %}<small class="muted">No candidates</small>{% elif sc>=threshold %}<small class="ok">Matched</small>{% else %}<small class="bad">Below threshold</small>{% endif %}</td>
+<td>{{ m.status_badge(i.status) }}</td><td><a href="{{ url_for('admin.item_detail',item_id=i.id) }}">Open</a></td></tr>
+{% else %}<tr><td colspan="9"><div class="empty">No reports match.</div></td></tr>{% endfor %}
+</table></div>
+{% endblock %}

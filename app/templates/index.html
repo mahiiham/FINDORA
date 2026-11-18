@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% import '_macros.html' as m %}{% block content %}<section class="hero"><div><span class="eyebrow">{{ CAMPUS_NAME }}</span><h1>Lost something on campus? Found something? Findora brings it home.</h1><p>Report → AI match → Verify → Recover — privately, with no phone numbers shared.</p><div class="actions"><a class="btn primary" href="{{ url_for('items.create',kind='lost') if current_user.is_authenticated else url_for('auth.login') }}">Report Lost Item</a><a class="btn" href="{{ url_for('items.create',kind='found') if current_user.is_authenticated else url_for('auth.login') }}">Report Found Item</a><a class="btn ghost" href="{{ url_for('items.list_items') }}">Search Items</a></div></div></section>
+
+<div class="grid three">
+  <div class="stat"><strong>{{stats.active}}</strong><span>Active reports</span></div>
+  <div class="stat"><strong>{{stats.returned}}</strong><span>Items returned</span></div>
+  <div class="stat"><strong>{{stats.matches}}</strong><span>AI matches made</span></div>
+</div>
+
+<section class="grid four"><div class="card"><h3>Smart AI Matching</h3><p>TF-IDF plus structured scoring ranks possible lost/found pairs.</p></div><div class="card"><h3>Secure Verification</h3><p>Claims require private identifying information and admin review.</p></div><div class="card"><h3>Privacy Protection</h3><p>Sensitive ownership details never appear in public listings.</p></div><div class="card"><h3>Fast Search</h3><p>Filter by type, category, location, color, brand and status.</p></div></section>
+
+{% if returned %}
+<h2>Recently reunited 🎉</h2>
+<div class="grid four">{% for item in returned %}<div class="card row">{{ m.photo(item,'rowthumb') }}<div><strong>{{item.title}}</strong><p class="muted" style="margin:0">{{item.category.name}} · {{item.location.name}}</p></div></div>{% endfor %}</div>
+{% endif %}
+
+<h2>Recent reports</h2><div class="grid three">{% for item in recent %}{% include 'items/_card.html' %}{% else %}<p class="muted">No reports yet.</p>{% endfor %}</div>{% endblock %}

@@ -1,0 +1,4 @@
+{% macro sticker(name, cls='') %}<img class="sticker {{ cls }}" src="{{ sticker_url(name) }}" alt="{{ name }} sticker" title="{{ name }}">{% endmacro %}
+{% macro status_badge(status) %}<span class="badge st-{{ (status or '')|lower|replace('_','-') }}">{{ (status or '')|replace('_',' ') }}</span>{% endmacro %}
+{% macro score_pill(score, threshold) %}{% if score is none %}<span class="pill muted">no data</span>{% else %}<span class="pill {{ 'pass' if score >= threshold else 'fail' }}">{{ (score*100)|round|int }}%</span>{% endif %}{% endmacro %}
+{% macro photo(item, cls='') %}<img class="photo {{ cls }} {{ '' if item.image_path else 'is-sticker' }}" src="{{ item_thumb(item) }}" alt="{{ ('Photo of ' ~ item.title) if item.image_path else (item.category.name ~ ' sticker') }}" loading="lazy" onerror="this.onerror=null;this.src='{{ sticker_url(item.category.name) }}';this.classList.add('is-sticker');">{% endmacro %}

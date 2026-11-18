@@ -1,0 +1,23 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>Admin dashboard</h1><p class="muted">Everything reported, claimed and matched at {{ CAMPUS_NAME }}.</p></div>
+  <div class="actions"><a class="btn" href="{{ url_for('admin.claims') }}">Review claims</a><a class="btn ghost" href="{{ url_for('admin.match_log') }}">AI match log</a><a class="btn ghost" href="{{ url_for('admin.tickets') }}">User messages</a></div></div>
+<div class="grid six">{% for k,v in stats.items() %}<div class="stat"><strong>{{ v }}</strong><span>{{ k|title }}</span></div>{% endfor %}</div>
+<div class="notice"><i class="bi bi-cpu"></i> <strong>AI match threshold: {{ (threshold*100)|round|int }}%.</strong> Every lost/found pair the engine scores is stored. Pairs at or above the threshold become matches; pairs below it are kept in the <a href="{{ url_for('admin.match_log',view='rejected') }}">rejected list</a> so you can show a user exactly why nothing matched.</div>
+<div class="grid two">
+  <section><h2>Claims waiting for review</h2><div class="stack">
+  {% for c in pending %}{% set sc = best.get(c.item_id) %}
+    <div class="card row spread slim"><div class="row-left">{{ m.photo(c.item,'rowthumb') }}<div><strong>{{ c.item.title }}</strong><p class="muted">{{ c.claimant.name }} · AI {{ m.score_pill(sc,threshold) }}</p></div></div><a class="btn primary small" href="{{ url_for('admin.review_claim',claim_id=c.id) }}">Review</a></div>
+  {% else %}<div class="empty">No pending claims.</div>{% endfor %}</div></section>
+  <section><h2>Open messages from users</h2><div class="stack">
+  {% for t in tickets %}<a class="card row spread slim linkcard" href="{{ url_for('admin.ticket',ticket_id=t.id) }}"><div><strong>{{ t.subject }}</strong><p class="muted">{{ t.user.name }} · {{ t.kind.replace('_',' ').title() }}</p></div>{{ m.status_badge(t.status) }}</a>
+  {% else %}<div class="empty">Inbox is clear.</div>{% endfor %}</div></section>
+</div>
+<h2>Latest reports</h2>
+<div class="tablewrap"><table>
+<tr><th></th><th>Report</th><th>Type</th><th>Reporter</th><th>Location</th><th>Best AI score</th><th>Status</th><th></th></tr>
+{% for i in recent_items %}{% set sc = best.get(i.id) %}
+<tr><td>{{ m.photo(i,'tablethumb') }}</td><td><strong>{{ i.title }}</strong><br><small>{{ m.sticker(i.category.name,'mini') }} {{ i.category.name }}</small></td><td><span class="badge {{ i.item_type|lower }}">{{ i.item_type }}</span></td><td>{{ i.user.name }}</td><td>{{ i.location.name }}</td><td>{{ m.score_pill(sc,threshold) }}</td><td>{{ m.status_badge(i.status) }}</td><td><a href="{{ url_for('admin.item_detail',item_id=i.id) }}">Open</a></td></tr>
+{% endfor %}</table></div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block content %}<div class="pagehead"><div><h1>Search Lost & Found</h1><p>Public details only. Sensitive verification information stays private.</p></div></div>
+
+<h2 style="margin-top:0">Browse by category</h2>
+<div class="cat-dash">
+  {% for row in category_stats %}
+  {% if row.lost+row.found > 0 or loop.index<=8 %}
+  <a class="cat-tile{{ ' active' if request.args.get('category')==row.cat.id|string else '' }}" href="{{url_for('items.list_items',category=row.cat.id)}}">
+    <span class="cat-tile-name">{{row.cat.name}}</span>
+    <span class="cat-tile-counts"><span class="chip lost-chip">{{row.lost}} lost</span><span class="chip found-chip">{{row.found}} found</span></span>
+  </a>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<form class="filters" method="get"><input name="q" placeholder="Search keywords" value="{{request.args.get('q','')}}"><select name="type"><option value="">Lost or Found</option><option {% if request.args.get('type')=='LOST'%}selected{%endif%}>LOST</option><option {% if request.args.get('type')=='FOUND'%}selected{%endif%}>FOUND</option></select><select name="category"><option value="">All categories</option>{% for c in categories %}<option value="{{c.id}}" {% if request.args.get('category')==c.id|string%}selected{%endif%}>{{c.name}}</option>{% endfor %}</select><select name="location"><option value="">All locations</option>{% for l in locations %}<option value="{{l.id}}" {% if request.args.get('location')==l.id|string%}selected{%endif%}>{{l.name}}</option>{% endfor %}</select><input name="color" placeholder="Color" value="{{request.args.get('color','')}}"><input name="brand" placeholder="Brand" value="{{request.args.get('brand','')}}"><button class="btn primary">Apply</button><a class="btn ghost" href="{{url_for('items.list_items')}}">Clear</a></form><div class="grid three">{% for item in page.items %}{% include 'items/_card.html' %}{% else %}<div class="empty">No reports match these filters.</div>{% endfor %}</div><div class="pager">{% if page.has_prev %}<a href="{{url_for('items.list_items',page=page.prev_num,**request.args)}}">Previous</a>{% endif %}<span>Page {{page.page}} / {{page.pages or 1}}</span>{% if page.has_next %}<a href="{{url_for('items.list_items',page=page.next_num,**request.args)}}">Next</a>{% endif %}</div>{% endblock %}

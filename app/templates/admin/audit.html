@@ -1,0 +1,5 @@
+{% extends 'admin/base_admin.html' %}
+{% block content %}
+<div class="pagehead"><div><h1>Audit log</h1><p class="muted">Latest 200 sensitive actions with actor and IP address.</p></div></div>
+<div class="tablewrap"><table><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>IP</th></tr>{% for l in logs %}<tr><td>{{ l.created_at.strftime('%d %b %Y, %H:%M') }}</td><td>{{ l.user.email if l.user else 'System' }}</td><td>{{ l.action }}</td><td>{{ l.entity_type }} {{ l.entity_id }}</td><td>{{ l.ip_address }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

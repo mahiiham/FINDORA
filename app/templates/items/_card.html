@@ -1,0 +1,12 @@
+{% import '_macros.html' as m %}
+<article class="card itemcard">
+  <a class="thumbwrap" href="{{ url_for('items.detail', item_id=item.id) }}">
+    <img class="thumb {{ '' if item.image_path else 'is-sticker' }}" src="{{ item_thumb(item) }}" alt="{{ ('Photo of ' ~ item.title) if item.image_path else (item.category.name ~ ' sticker') }}" loading="lazy" onerror="this.onerror=null;this.src='{{ sticker_url(item.category.name) }}';this.classList.add('is-sticker');">
+    <span class="badge {{ item.item_type|lower }} corner">{{ item.item_type }}</span>
+    {% if item.image_path %}<span class="photo-flag"><i class="bi bi-camera"></i></span>{% endif %}
+  </a>
+  <div class="row"><span class="catchip">{{ m.sticker(item.category.name, 'mini') }}{{ item.category.name }}</span>{{ m.status_badge(item.status) }}</div>
+  <h3><a href="{{ url_for('items.detail', item_id=item.id) }}">{{ item.title }}</a></h3>
+  <p>{{ item.description[:100] }}{{ '…' if item.description|length > 100 else '' }}</p>
+  <small><i class="bi bi-geo-alt"></i> {{ item.location.name }} · {{ item.date_event.strftime('%d %b %Y') }}</small>
+</article>

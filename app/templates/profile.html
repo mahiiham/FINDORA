@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<div class="authbox"><h1>Profile</h1><form method="post">{{form.hidden_tag()}}{% for f in [form.name,form.email,form.phone] %}<label>{{f.label}}{{f()}}{% for e in f.errors %}<small class="error">{{e}}</small>{% endfor %}</label>{% endfor %}{{form.submit(class='btn primary full')}}</form></div>{% endblock %}

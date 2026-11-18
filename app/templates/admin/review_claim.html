@@ -1,0 +1,19 @@
+{% extends 'admin/base_admin.html' %}
+{% import '_macros.html' as m %}
+{% block content %}
+<div class="pagehead"><div><h1>Review claim #{{ claim.id }}</h1><p class="muted">AI-assisted review — the final decision is always made by an admin.</p></div>
+  <div class="ai-confidence level-{{ confidence.level }}"><span class="ai-confidence-score">{{ confidence.score }}%</span><span class="ai-confidence-label"><i class="ai-dot"></i>AI verification confidence</span><small>{{ confidence.label }}</small></div></div>
+<div class="card row spread"><div class="row-left">{{ m.photo(claim.item,'rowthumb big') }}<div><h3 style="margin:0">{{ claim.item.title }}</h3><p class="muted">{{ claim.item.item_type|title }} report by {{ claim.item.user.name }} · claimant {{ claim.claimant.name }} ({{ claim.claimant.email }})</p></div></div>{{ m.status_badge(claim.status) }}</div>
+<div class="grid two">
+  <div class="card sensitive"><h3>Reporter's private details</h3><p>{{ private or '—' }}</p></div>
+  <div class="card sensitive"><h3>Claimant's verification answer</h3><p>{{ response }}</p></div>
+</div>
+<h3 class="section-sub">AI scores for the claimed report (threshold {{ (threshold*100)|round|int }}%)</h3>
+<div class="tablewrap"><table><tr><th>Compared with</th><th>AI score</th><th>Result</th></tr>
+{% for r in logs %}{% set other = r.found_item if claim.item_id==r.lost_item_id else r.lost_item %}<tr><td>{{ other.title }} <small class="muted">({{ other.user.name }})</small></td><td>{{ m.score_pill(r.score,r.threshold) }}</td><td>{% if r.passed %}<span class="pill pass">Matched</span>{% else %}<span class="pill fail">Rejected</span>{% endif %}</td></tr>
+{% else %}<tr><td colspan="3"><div class="empty">No pairs scored for this report.</div></td></tr>{% endfor %}</table></div>
+{% if claim.review_reason %}<p class="notice"><strong>Admin note:</strong> {{ claim.review_reason }}</p>{% endif %}
+{% if claim.status=='PENDING' %}
+<form class="authbox widebox" method="post">{{ form.hidden_tag() }}<label>{{ form.reason.label }}{{ form.reason(rows=4) }}</label><div class="actions"><button class="btn primary" name="decision" value="approve">Approve</button><button class="btn danger" name="decision" value="reject">Reject</button><a class="btn ghost" href="{{ url_for('admin.contact_user',user_id=claim.claimant_id,item=claim.item_id) }}">Contact claimant</a></div></form>
+{% else %}<div class="actions"><a class="btn ghost" href="{{ url_for('admin.claims') }}">Back to claims</a><a class="btn ghost" href="{{ url_for('messaging.thread',claim_id=claim.id) }}">View chat</a></div>{% endif %}
+{% endblock %}
